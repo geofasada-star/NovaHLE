@@ -136,7 +136,7 @@ pub const CLASSES: ClassExports = objc_classes! {
     env.window
         .as_mut()
         .unwrap()
-        .set_share_with_current_context(!env.options.cpu_rendering);
+        .set_share_with_current_context(true);
 
     let mut gles1_ins = create_gles1_ctx(env);
 
