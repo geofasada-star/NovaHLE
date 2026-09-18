@@ -56,6 +56,7 @@ pub struct Options {
     pub print_fps: bool,
     pub fps_limit: Option<f64>,
     pub force_composition: bool,
+    pub cpu_rendering: bool,
     pub network_access: bool,
     pub popup_errors: bool,
     pub dumping_options: DumpingOptions,
@@ -89,6 +90,7 @@ impl Default for Options {
             print_fps: false,
             fps_limit: Some(60.0), // Original iPhone is 60Hz and uses v-sync,
             force_composition: false,
+            cpu_rendering: false,
             network_access: false,
             popup_errors: true,
             dumping_options: Default::default(),
@@ -242,6 +244,9 @@ impl Options {
             }
         } else if arg == "--force-composition" {
             self.force_composition = true;
+        } else if arg == "--cpu-rendering" {
+            self.cpu_rendering = true;
+            self.force_composition = false;
         } else if arg == "--allow-network-access" {
             self.network_access = true;
         } else if arg == "--no-error-popup" {

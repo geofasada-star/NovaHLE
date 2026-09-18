@@ -133,7 +133,10 @@ pub const CLASSES: ClassExports = objc_classes! {
     {
         let _prev_ctx = prev_context.make_current(window);
     }
-    env.window.as_mut().unwrap().set_share_with_current_context(true);
+    env.window
+        .as_mut()
+        .unwrap()
+        .set_share_with_current_context(!env.options.cpu_rendering);
 
     let mut gles1_ins = create_gles1_ctx(env);
 
@@ -160,6 +163,10 @@ pub const CLASSES: ClassExports = objc_classes! {
         return nil;
     }
 
+    env.window
+        .as_ref()
+        .unwrap()
+        .set_share_with_current_context(false);
     let mut gles1_ins = create_gles1_ctx(env);
 
     let window = env.window.as_mut().expect("OpenGL ES is not supported in headless mode");
@@ -302,9 +309,14 @@ pub const CLASSES: ClassExports = objc_classes! {
         return false;
     };
 
-    // We're presenting to the opaque CAEAGLLayer that covers the screen.
-    // We can use the fast path where we skip composition and present directly.
-    if drawable == fullscreen_layer {
+    // CPU rendering deliberately keeps presentation on the app's context. This
+    // avoids the context switching and shared resources that are problematic on
+    // some Android drivers.
+    if env.options.cpu_rendering && drawable == fullscreen_layer {
+        unsafe {
+            present_renderbuffer(env);
+        }
+    } else if drawable == fullscreen_layer {
         log_dbg!(
             "Layer {:?} is the fullscreen layer, presenting renderbuffer {:?} directly (fast path).",
             drawable,
@@ -496,6 +508,8 @@ unsafe fn read_renderbuffer(gles: &mut dyn GLES, mut pixel_buffer: Vec<u8>) -> (
     // state changes we make.
     let old_framebuffer: GLuint = get_int(gles, gles11::FRAMEBUFFER_BINDING_OES) as _;
 
+    gles.Finish();
+
     // Create a framebuffer we can use to read from the renderbuffer
     let mut src_framebuffer = 0;
     gles.GenFramebuffersOES(1, &mut src_framebuffer);
@@ -506,6 +520,13 @@ unsafe fn read_renderbuffer(gles: &mut dyn GLES, mut pixel_buffer: Vec<u8>) -> (
         gles11::RENDERBUFFER_OES,
         renderbuffer,
     );
+    let framebuffer_status = gles.CheckFramebufferStatusOES(gles11::FRAMEBUFFER_OES);
+    if framebuffer_status != gles11::FRAMEBUFFER_COMPLETE_OES {
+        log!(
+            "CPU rendering: source framebuffer is incomplete ({:#x})",
+            framebuffer_status
+        );
+    }
 
     // Read the pixels
     let size = (width_u32 as usize)
@@ -532,7 +553,6 @@ unsafe fn read_renderbuffer(gles: &mut dyn GLES, mut pixel_buffer: Vec<u8>) -> (
         Instant::now().saturating_duration_since(before)
     );
     pixel_buffer.set_len(size);
-
     // Clean up the framebuffer object since we no longer need it.
     gles.DeleteFramebuffersOES(1, &src_framebuffer);
 
@@ -561,45 +581,62 @@ unsafe fn present_renderbuffer(env: &mut Environment) {
     let mut gles_boxed = gles_ctx.make_current(env.window.as_mut().unwrap());
     let gles = gles_boxed.as_mut();
 
-    // We can't directly copy the content of the renderbuffer to the default
-    // framebuffer (the window), but if we attach it to a framebuffer object, we
-    // can use glCopyTexImage2D() to copy it to a texture, which we can then
-    // draw to the default framebuffer via a textured quad, which can be
-    // rotated, scaled or letterboxed as appropriate.
-
-    let renderbuffer: GLuint = get_int(gles, gles11::RENDERBUFFER_BINDING_OES) as _;
-    let (width, height) = get_renderbuffer_size(gles);
-
     // To avoid confusing the guest app, we need to be able to undo any
     // state changes we make.
+    let renderbuffer: GLuint = get_int(gles, gles11::RENDERBUFFER_BINDING_OES) as _;
+    let (width, height) = get_renderbuffer_size(gles);
     let old_framebuffer: GLuint = get_int(gles, gles11::FRAMEBUFFER_BINDING_OES) as _;
     let old_texture_2d: GLuint = get_int(gles, gles11::TEXTURE_BINDING_2D) as _;
 
-    // Create a framebuffer we can use to read from the renderbuffer
-    let mut src_framebuffer = 0;
-    gles.GenFramebuffersOES(1, &mut src_framebuffer);
-    gles.BindFramebufferOES(gles11::FRAMEBUFFER_OES, src_framebuffer);
-    gles.FramebufferRenderbufferOES(
-        gles11::FRAMEBUFFER_OES,
-        gles11::COLOR_ATTACHMENT0_OES,
-        gles11::RENDERBUFFER_OES,
-        renderbuffer,
-    );
-
-    // Create a texture with a copy of the pixels in the framebuffer
     let mut texture: GLuint = 0;
     gles.GenTextures(1, &mut texture);
     gles.BindTexture(gles11::TEXTURE_2D, texture);
-    gles.CopyTexImage2D(
-        gles11::TEXTURE_2D,
-        0,
-        gles11::RGB as _,
-        0,
-        0,
-        width,
-        height,
-        0,
-    );
+
+    if env.options.cpu_rendering {
+        let (pixels, pixel_width, pixel_height) = read_renderbuffer(gles, Vec::new());
+        assert_eq!(
+            (pixel_width as GLsizei, pixel_height as GLsizei),
+            (width, height)
+        );
+        gles.TexImage2D(
+            gles11::TEXTURE_2D,
+            0,
+            gles11::RGBA as _,
+            width,
+            height,
+            0,
+            gles11::RGBA,
+            gles11::UNSIGNED_BYTE,
+            pixels.as_ptr() as *const _,
+        );
+    } else {
+        // We can't directly copy the content of the renderbuffer to the default
+        // framebuffer (the window), but if we attach it to a framebuffer object, we
+        // can use glCopyTexImage2D() to copy it to a texture, which we can then
+        // draw to the default framebuffer via a textured quad, which can be
+        // rotated, scaled or letterboxed as appropriate.
+        let mut src_framebuffer = 0;
+        gles.GenFramebuffersOES(1, &mut src_framebuffer);
+        gles.BindFramebufferOES(gles11::FRAMEBUFFER_OES, src_framebuffer);
+        gles.FramebufferRenderbufferOES(
+            gles11::FRAMEBUFFER_OES,
+            gles11::COLOR_ATTACHMENT0_OES,
+            gles11::RENDERBUFFER_OES,
+            renderbuffer,
+        );
+        gles.CopyTexImage2D(
+            gles11::TEXTURE_2D,
+            0,
+            gles11::RGB as _,
+            0,
+            0,
+            width,
+            height,
+            0,
+        );
+        gles.DeleteFramebuffersOES(1, &src_framebuffer);
+    }
+
     // The texture will not have any mip levels so we must ensure the filter
     // does not use them, else rendering will fail.
     gles.TexParameteri(
@@ -607,11 +644,6 @@ unsafe fn present_renderbuffer(env: &mut Environment) {
         gles11::TEXTURE_MIN_FILTER,
         gles11::LINEAR as _,
     );
-
-    // Clean up the framebuffer object since we no longer need it.
-    // This also sets the framebuffer bindings back to zero, so rendering
-    // will go to the default framebuffer (the window).
-    gles.DeleteFramebuffersOES(1, &src_framebuffer);
 
     // Reset various things that could affect the quad or virtual cursor we're
     // going to draw. Back up the old state while doing so, so it can be

@@ -46,7 +46,7 @@ pub const CLASSES: ClassExports = objc_classes! {
 /// and present it directly from the app's context. This function is used to
 /// determine when that will happen.
 pub fn find_fullscreen_eagl_layer(env: &mut Environment) -> id {
-    if env.options.force_composition {
+    if env.options.force_composition && !env.options.cpu_rendering {
         return nil;
     }
 

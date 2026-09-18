@@ -149,6 +149,7 @@ struct AppPickerDelegateHostObject {
     analog_stick_tilt_controls: Option<bool>,
     network: Option<bool>,
     fullscreen: Option<bool>,
+    cpu_rendering: Option<bool>,
 }
 impl HostObject for AppPickerDelegateHostObject {}
 
@@ -236,6 +237,10 @@ const CLASSES: ClassExports = objc_classes! {
 - (())fullscreen:(id)switch { // UISwitch*
     let switch_state: bool = msg![env; switch isOn];
     env.objc.borrow_mut::<AppPickerDelegateHostObject>(this).fullscreen = Some(switch_state);
+}
+- (())cpuRendering:(id)switch { // UISwitch*
+    let switch_state: bool = msg![env; switch isOn];
+    env.objc.borrow_mut::<AppPickerDelegateHostObject>(this).cpu_rendering = Some(switch_state);
 }
 
 - (())openFileManager {
@@ -532,6 +537,7 @@ fn app_picker_inner(
     let mut quick_options_orientation: Option<DeviceOrientation> = None;
     let mut quick_options_analog_stick_tilt_controls = true;
     let mut quick_options_network = false;
+    let mut quick_options_cpu_rendering = false;
 
     fn update_quick_option_buttons(env: &mut Environment, buttons: &[id], selected_idx: usize) {
         for (idx, &button) in buttons.iter().enumerate() {
@@ -714,6 +720,8 @@ fn app_picker_inner(
             quick_options_analog_stick_tilt_controls = enabled;
         } else if let Some(enabled) = std::mem::take(&mut host_obj.network) {
             quick_options_network = enabled;
+        } else if let Some(enabled) = std::mem::take(&mut host_obj.cpu_rendering) {
+            quick_options_cpu_rendering = enabled;
         } else if let Some(fullscreen) = std::mem::take(&mut host_obj.fullscreen) {
             quick_options_fullscreen = match fullscreen {
                 false => None,
@@ -745,6 +753,9 @@ fn app_picker_inner(
     }
     if quick_options_network {
         option_args.push("--allow-network-access".to_string());
+    }
+    if quick_options_cpu_rendering {
+        option_args.push("--cpu-rendering".to_string());
     }
 
     // Return the environment so some parts of it can be salvaged.
@@ -1348,6 +1359,8 @@ fn setup_quick_options(
         RowKind::Label("Use analog sticks for tilt controls"),
         RowKind::Switch("analogStickTiltControls:", true),
         // ---- (divider for stuff skipped below)
+        RowKind::Label("CPU rendering (slow, compatibility mode)"),
+        RowKind::Switch("cpuRendering:", false),
         RowKind::Label("Fullscreen (override)"),
         RowKind::Switch("fullscreen:", false),
     ];

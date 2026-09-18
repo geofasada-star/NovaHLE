@@ -270,6 +270,12 @@ Other options:
         they present frames; increasing the limit will not increase their
         framerate, but may make it less consistent.
 
+    --cpu-rendering
+        Present fullscreen app frames through a CPU readback before drawing
+        them with the app's own context. This is slower than direct
+        presentation, but avoids the shared compositor context used by some
+        GPU drivers.
+
     --force-composition
         Forces presentation of renderbuffer as if no fullscreen EAGL layer is
         present, i.e. renderbuffer will go through the compositor.

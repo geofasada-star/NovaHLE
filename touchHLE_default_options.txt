@@ -234,7 +234,7 @@ com.konami-europe.silenthillescape: --x-tilt-offset=-45
 
 # LEGO Ninjago: Spinjitzu Scavenger Hunt
 # The game is landscape even though its bundle advertises both device families.
-com.lego.NinjagoSpinjitzuScavengerHunt: --landscape-left --force-composition
+com.lego.NinjagoSpinjitzuScavengerHunt: --landscape-left --cpu-rendering
 
 # Dead Space
 com.ea.deadspace.bv: --force-composition
