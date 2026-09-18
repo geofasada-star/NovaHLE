@@ -267,7 +267,7 @@ jobs:
         CMAKE: ${{ github.workspace }}\vendor\cmake\bin\cmake
     - name: Create bundle
       shell: bash
-      run: cd dev-scripts && ./make-windows-bundle.sh ../target/release/touchHLE.exe && mv touchHLE_windows_bundle/ ..
+      run: cd dev-scripts && ./make-windows-bundle.sh ../target/release/touchHLE.exe && mv NovaHLE_windows_bundle/ ..
     - uses: actions/upload-artifact@v4
       with:
         name: touchHLE_Windows_x86_64
