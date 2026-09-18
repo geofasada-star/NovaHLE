@@ -611,8 +611,9 @@ unsafe fn present_renderbuffer(env: &mut Environment) {
         );
     } else {
         // We can't directly copy the content of the renderbuffer to the default
-        // framebuffer (the window), but if we attach it to a framebuffer object, we
-        // can use glCopyTexImage2D() to copy it to a texture, which we can then
+        // framebuffer (the window), but if we attach it to a framebuffer
+        // object, we can use glCopyTexImage2D() to copy it to a texture, which
+        // we can then
         // draw to the default framebuffer via a textured quad, which can be
         // rotated, scaled or letterboxed as appropriate.
         let mut src_framebuffer = 0;
