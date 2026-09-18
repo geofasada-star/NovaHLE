@@ -1,4 +1,4 @@
-// Allow the crate to have a non-snake-case name (touchHLE).
+// Allow the crate to have a non-snake-case name (NovaHLE).
 // This also allows items in the crate to have non-snake-case names.
 #![allow(non_snake_case)]
 
@@ -24,7 +24,7 @@ pub fn branding() -> &'static str {
     {
         return "";
     }
-    if (GITHUB_REPOSITORY, GITHUB_REF_NAME) == (Some("touchHLE/touchHLE"), Some("trunk")) {
+    if (GITHUB_REPOSITORY, GITHUB_REF_NAME) == (Some("geofasada-star/NovaHLE"), Some("trunk")) {
         "PREVIEW"
     } else {
         "UNOFFICIAL"

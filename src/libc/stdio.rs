@@ -11,7 +11,7 @@ use super::posix_io::{
 };
 use crate::dyld::{export_c_func, ConstantExports, FunctionExports, HostConstant};
 use crate::fs::GuestPath;
-use crate::libc::errno::{set_errno, EBUSY};
+use crate::libc::errno::{set_errno, EBUSY, EINVAL};
 use crate::libc::string::strlen;
 use crate::mem::{ConstPtr, ConstVoidPtr, GuestUSize, Mem, MutPtr, MutVoidPtr, Ptr, SafeRead};
 use crate::Environment;
@@ -607,15 +607,34 @@ fn remove(env: &mut Environment, path: ConstPtr<u8>) -> i32 {
     }
 }
 
-fn setbuf(env: &mut Environment, file_ptr: MutPtr<FILE>, buf: ConstPtr<u8>) {
-    // TODO: handle errno properly
+fn setvbuf(
+    env: &mut Environment,
+    file_ptr: MutPtr<FILE>,
+    _buf: MutPtr<u8>,
+    mode: i32,
+    _size: GuestUSize,
+) -> i32 {
     set_errno(env, 0);
-
     _touchHLE_check_file_object_lock(env, file_ptr);
 
-    assert!(buf.is_null());
-    log!(
-        "Warning: ignoring a setbuf() for {:?} with NULL (unbuffered)",
+    if !(0..=2).contains(&mode) {
+        set_errno(env, EINVAL);
+        return -1;
+    }
+
+    log_dbg!(
+        "Ignoring setvbuf({:?}, mode={}) because host stdio is not guest-buffered",
+        file_ptr,
+        mode
+    );
+    0
+}
+
+fn setbuf(env: &mut Environment, file_ptr: MutPtr<FILE>, _buf: ConstPtr<u8>) {
+    set_errno(env, 0);
+    _touchHLE_check_file_object_lock(env, file_ptr);
+    log_dbg!(
+        "Ignoring setbuf({:?}) because host stdio is not guest-buffered",
         file_ptr
     );
 }
@@ -738,6 +757,7 @@ pub const FUNCTIONS: FunctionExports = &[
     export_c_func!(puts(_)),
     export_c_func!(putchar(_)),
     export_c_func!(remove(_)),
+    export_c_func!(setvbuf(_, _, _, _)),
     export_c_func!(setbuf(_, _)),
     // POSIX-specific functions
     export_c_func!(fileno(_)),

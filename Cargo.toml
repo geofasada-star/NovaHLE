@@ -4,14 +4,15 @@
 [workspace]
 
 [workspace.package]
-version = "0.2.3"
+version = "1.0.0"
 edition = "2021"
 license = "MPL-2.0"
-authors = ["touchHLE project contributors"]
-homepage = "https://touchhle.org/"
+authors = ["NovaHLE project contributors"]
+homepage = "https://github.com/geofasada-star/NovaHLE"
 
 [package]
-name = "touchHLE"
+name = "NovaHLE"
+autobins = false
 version = { workspace = true }
 edition = { workspace = true }
 license = { workspace = true }
@@ -23,8 +24,12 @@ homepage = { workspace = true }
 crate-type = ["cdylib", "rlib"]
 
 [[bin]]
-name = "touchHLE"
+name = "NovaHLE"
 path = "src/bin.rs"
+
+[[bin]]
+name = "touchHLE"
+path = "src/bin/touchHLE.rs"
 
 [features]
 default = ["static"]

@@ -14,7 +14,7 @@ plugins {
     id("org.jetbrains.kotlin.android") version("2.0.21")
 }
 
-fun runTouchHLEVersionTool(wantBranding: Boolean): String {
+fun runNovaHLEVersionTool(wantBranding: Boolean): String {
     val output = providers.exec {
         commandLine("cargo", "run", "--package", "touchHLE_version")
         if (wantBranding) {
@@ -25,12 +25,8 @@ fun runTouchHLEVersionTool(wantBranding: Boolean): String {
     return output
 }
 
-fun getTouchHLEBranding(): String {
-    return runTouchHLEVersionTool(/* wantBranding: */ true)
-}
-
-fun getTouchHLEVersionName(): String {
-    return runTouchHLEVersionTool(/* wantBranding: */ false)
+fun getNovaHLEBranding(): String {
+    return runNovaHLEVersionTool(/* wantBranding: */ true)
 }
 
 fun join(prefix: String, separator: String, branding: String): String {
@@ -44,16 +40,16 @@ android {
         buildConfig = true
     }
     defaultConfig {
-        val branding = getTouchHLEBranding()
-        applicationId = "org.touchhle.android"
+        val branding = getNovaHLEBranding()
+        applicationId = "org.novahle.android"
         if (!branding.isEmpty()) {
             applicationIdSuffix = branding.lowercase()
         }
-        resValue("string", "app_name", join("touchHLE", " ", branding))
-        buildConfigField("String", "APP_NAME", "\"${join("touchHLE", " ", branding)}\"")
+        resValue("string", "app_name", join("NovaHLE", " ", branding))
+        buildConfigField("String", "APP_NAME", "\"${join("NovaHLE", " ", branding)}\"")
         manifestPlaceholders["icon"] = join("@drawable/icon", "_", branding.lowercase())
         buildConfigField("int", "APP_ICON", join("R.drawable.icon", "_", branding.lowercase()))
-        versionName = join(getTouchHLEVersionName(), " ", branding)
+        versionName = join("1.0", " ", branding)
 
         minSdk = 21 // first version with AArch64
         targetSdk = 31
@@ -127,14 +123,14 @@ android {
     lint {
         abortOnError = false
     }
-    namespace = "org.touchhle.android"
+    namespace = "org.novahle.android"
 }
 
 cargoNdk {
     // Make sure this matches the android abiFilters above.
     targets = arrayListOf("arm64")
     module = ".."
-    librariesNames = arrayListOf("libtouchHLE.so", "libSDL2.so", "libc++_shared.so")
+    librariesNames = arrayListOf("libNovaHLE.so", "libSDL2.so", "libc++_shared.so")
     extraCargoEnv = mapOf(
         "ANDROID_NDK" to android.ndkDirectory.toString(),
         "ANDROID_NDK_HOME" to android.ndkDirectory.toString(),

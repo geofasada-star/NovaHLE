@@ -1,8 +1,8 @@
-# touchHLE: high-level emulator for iPhone OS apps
+# NovaHLE 1.0: high-level emulator for iPhone OS apps
 
-**touchHLE** is a high-level emulator for iPhone OS apps. It runs on modern desktop operating systems and Android, and is written in Rust.
+**NovaHLE** is a high-level emulator for iPhone OS apps, based on touchHLE. It runs on modern desktop operating systems and Android, and is written in Rust.
 
-touchHLE's high-level emulation (HLE) approach differs from low-level emulation (LLE) in that it does not directly simulate the iPhone/iPod touch hardware. Instead of running iPhone OS inside emulation, touchHLE _itself_ takes the place of iPhone OS and provides its own implementations of the system frameworks (Foundation, UIKit, OpenGL ES, OpenAL, etc). The only code the [emulated CPU](https://github.com/merryhime/dynarmic) executes is the app binary and [a handful of libraries](touchHLE_dylibs/).
+NovaHLE's high-level emulation (HLE) approach differs from low-level emulation (LLE) in that it does not directly simulate the iPhone/iPod touch hardware. Instead of running iPhone OS inside emulation, NovaHLE _itself_ takes the place of iPhone OS and provides its own implementations of the system frameworks (Foundation, UIKit, OpenGL ES, OpenAL, etc). The only code the [emulated CPU](https://github.com/merryhime/dynarmic) executes is the app binary and [a handful of libraries](touchHLE_dylibs/).
 
 The goal of this project is to run games from the early days of iOS:
 
@@ -10,17 +10,17 @@ The goal of this project is to run games from the early days of iOS:
 * Longer term: iPhone OS 3.1, iPad apps (iPhone OS 3.2), iOS 4.x, …
 * [Never](https://github.com/touchHLE/touchHLE/issues/181#issuecomment-1777098259): 64-bit iOS.
 
-**This does not mean that all apps for these OS versions work.** The vast majority of iPhone OS 2.x and iPhone OS 3.x apps do not currently work in touchHLE, and the ones that do work are generally games (support for other apps isn't a priority: it's more complex and less fun). This improves gradually over time with contributions from various developers. The [touchHLE app compatibility database](https://appdb.touchhle.org/) tracks which apps work in touchHLE; it is a crowdsourced effort to which anyone can contribute. **We don't take requests, so please do not ask us to support your favourite game.**
+**This does not mean that all apps for these OS versions work.** The vast majority of iPhone OS 2.x and iPhone OS 3.x apps do not currently work in NovaHLE, and the ones that do work are generally games (support for other apps isn't a priority: it's more complex and less fun). This improves gradually over time with contributions from various developers. The [touchHLE app compatibility database](https://appdb.touchhle.org/) tracks which apps work in NovaHLE; it is a crowdsourced effort to which anyone can contribute. **We don't take requests, so please do not ask us to support your favourite game.**
 
 If you're curious about the history and motivation behind the project, you might want to read [the original announcement](https://hikari.noyu.me/blog/2023-02-06-touchhle-anouncement-thread-tech-games-me-and-passion-projects.html). For an introduction to some of the technical details, check out [_touchHLE in depth_](https://hikari.noyu.me/blog/2023-04-13-touchhle-in-depth-1-function-calls.html).
 
-**Check out the website for downloads, FAQ, social media, and more:**<br>👉 <https://touchhle.org/> 👈
+**NovaHLE source and releases:**<br>👉 <https://github.com/geofasada-star/NovaHLE> 👈
 
 ## Important disclaimer
 
 This project is not affiliated with or endorsed by Apple Inc in any way. iPhone, iOS, iPod, iPod touch and iPad are trademarks of Apple Inc in the United States and other countries.
 
-Only use touchHLE to emulate software you have obtained legally.
+Only use NovaHLE to emulate software you have obtained legally.
 
 ## Platform support
 
@@ -50,27 +50,27 @@ In general, the supported functionality is defined by the supported apps: most c
 
 # Usage
 
-First obtain touchHLE, either a [binary release](https://github.com/touchHLE/touchHLE/releases) or by building it yourself (see the next section).
+First obtain NovaHLE from the [NovaHLE releases](https://github.com/geofasada-star/NovaHLE/releases) or build it yourself (see the next section).
 
 You'll then need an app that you can run. The [app compatibility database](https://appdb.touchhle.org/) is a good guide for which versions of which apps are known to work, but bear in mind that it may contain outdated or inaccurate information. Note that the app binary must be decrypted to be usable.
 
-There's a few ways you can run an app in touchHLE.
+There are a few ways you can run an app in NovaHLE.
 
 ## Special Android notes
 
 Windows, Mac and Linux users can skip this section.
 
-On Android, only the graphical user interface (app picker) is available. Therefore, you must put your “.ipa” files or “.app” bundles inside the “touchHLE\_apps” directory. Note that you can only do that once you have run touchHLE at least once.
+On Android, only the graphical user interface (app picker) is available. Therefore, you must put your “.ipa” files or “.app” bundles inside the “touchHLE\_apps” directory. Note that you can only do that once you have run NovaHLE at least once.
 
 File management can be tricky on Android due to [restrictions introduced by Google in newer Android versions](https://developer.android.com/about/versions/11/privacy/storage#scoped-storage). One of these methods may work:
 
 * If you tap the “File manager” button in touchHLE, this should open some sort of file manager. You might also be able to find touchHLE in your device's file manager app (often called “Files”, or sometimes “Downloads”), alongside cloud storage services. There are some limitations on what kinds of operations are possible. The files in this location are stored on your device. Warning: on some devices, the “File manager” button _will_ open a file manager, but it will crash when actually doing file operations (this is probably a bug in Android, we have not been able to debug it). If this happens to you, clear that file manager from your recent apps list and try to navigate to your device's file manager app directly instead, rather than via the touchHLE UI.
-* If you have an older version of Android, you may be able to directly access touchHLE's files by browsing to `/sdcard/Android/data/org.touchhle.android/files/touchHLE_apps`. Note that the `/sdcard` directory is usually not on the SD card.
-* You may be able to use ADB. If you're unfamiliar with ADB, try using <https://yume-chan.github.io/ya-webadb/> (in Google Chrome or another browser with WebUSB) with your device connected over USB. touchHLE's files can be found in “sdcard” > “Android” > “data” > “org.touchhle.android” > “files” > “touchHLE\_apps”.
+* If you have an older version of Android, you may be able to directly access touchHLE's files by browsing to `/sdcard/Android/data/org.novahle.android/files/touchHLE_apps`. Note that the `/sdcard` directory is usually not on the SD card.
+* You may be able to use ADB. If you're unfamiliar with ADB, try using <https://yume-chan.github.io/ya-webadb/> (in Google Chrome or another browser with WebUSB) with your device connected over USB. touchHLE's files can be found in “sdcard” > “Android” > “data” > “org.novahle.android” > “files” > “touchHLE\_apps”.
 
 ## Graphical user interface
 
-touchHLE has a built-in app picker. If you put your `.ipa` files and `.app` bundles in the `touchHLE_apps` directory, they will show up in the app picker when you run touchHLE.
+NovaHLE has a built-in app picker. If you put your `.ipa` files and `.app` bundles in the `touchHLE_apps` directory, they will show up in the app picker when you run NovaHLE.
 
 To configure the options, you can edit the `touchHLE_options.txt` file. To get a list of options, look in the `OPTIONS_HELP.txt` file.
 
@@ -85,17 +85,17 @@ If you're a Windows user and unfamiliar with the command line, these instruction
 1. Move the `.ipa` file or `.app` bundle to the same folder as `touchHLE.exe`.
 2. Hold the Shift key and right-click on the empty space in the folder window.
 3. Click “Open with PowerShell”.
-4. Type `.\touchHLE.exe "YourAppNameHere.ipa"` (or `.app` as appropriate) and press Enter. If you want to specify options, add a space after the app name (outside the quotes) and then type the options, separated by spaces.
+4. Type `.\NovaHLE.exe "YourAppNameHere.ipa"` (or `.app` as appropriate) and press Enter. If you want to specify options, add a space after the app name (outside the quotes) and then type the options, separated by spaces.
 
 ## Local multiplayer support
 
-touchHLE provides limited support for local multiplayer via Wi-Fi in some games. At the moment of writing it is supported in Asphalt 4 and N.O.V.A.
+NovaHLE provides limited support for local multiplayer via Wi-Fi in some games. At the moment of writing it is supported in Asphalt 4 and N.O.V.A.
 
 Real iOS devices could also join/host games!
 
 **Usage:**
-1. Install touchHLE on 2+ devices connected to the same Wi-Fi network.
-2. **Important:** Ensure touchHLE is whitelisted in your OS firewall/network settings.
+1. Install NovaHLE on 2+ devices connected to the same Wi-Fi network.
+2. **Important:** Ensure NovaHLE is whitelisted in your OS firewall/network settings.
 3. Enable "Network access" in Quick options or via `--allow-network-access`.
 4. Start/join multiplayer in the game.
 
@@ -114,11 +114,11 @@ If the emulator crashes almost immediately while running a **known-working** ver
 
 # Building and contributing
 
-See the `CONTRIBUTING.md` file in the git repo if you want to contribute. If you just want build touchHLE, look at `dev-docs/building.md`.
+See the `CONTRIBUTING.md` file in the git repo if you want to contribute. If you just want build NovaHLE, look at `dev-docs/building.md`.
 
 # License
 
-touchHLE © 2023–2026 touchHLE project contributors.
+NovaHLE 1.0 © 2023–2026 NovaHLE project contributors.
 
 The source code of touchHLE itself (not its dependencies) is licensed under the Mozilla Public License, version 2.0.
 

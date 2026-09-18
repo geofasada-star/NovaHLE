@@ -1452,7 +1452,7 @@ pub fn show_error_messagebox(window: Option<&Window>, error_message: &str) {
         messagebox::ButtonData {
             flags: messagebox::MessageBoxButtonFlag::NOTHING,
             button_id: 0,
-            text: "Open touchHLE directory",
+            text: "Open NovaHLE directory",
         },
         messagebox::ButtonData {
             flags: messagebox::MessageBoxButtonFlag::NOTHING,
@@ -1464,8 +1464,8 @@ pub fn show_error_messagebox(window: Option<&Window>, error_message: &str) {
     let Ok(clicked_button) = messagebox::show_message_box(
         messagebox::MessageBoxFlag::ERROR,
         &mbox,
-        "touchHLE crashed!",
-        &format!("touchHLE crashed with the following error: {error_message}"),
+        "NovaHLE crashed!",
+        &format!("NovaHLE crashed with the following error: {error_message}"),
         window.map(|win| &win.window),
         None,
     ) else {
